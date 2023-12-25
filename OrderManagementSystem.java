@@ -1,4 +1,3 @@
-import java.lang.management.GarbageCollectorMXBean;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,7 +15,7 @@ public class OrderManagementSystem {
         try {
             // 获取数据库连接
             Connection connection = JDBCUtils.getConnection();
-            connection.setAutoCommit(false);
+//            connection.setAutoCommit(false);
 
             // 添加商品
             Product product1 = new Product(1, "商品1", 10.0, new Date(), new Date());
@@ -68,18 +67,28 @@ public class OrderManagementSystem {
      * @throws SQLException 如果在执行数据库操作时发生错误
      */
     public static void addProduct(Connection connection, Product product) throws SQLException {
-        String sql = "INSERT INTO good_table (uk_id_goods, name_goods, price_goods, gmt_modified, gmt_create) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            // 设置商品的参数
-            statement.setInt(1, product.getUk_id_goods());
-            statement.setString(2, product.getName_goods());
-            statement.setDouble(3, product.getPrice_goods());
-            statement.setDate(4, new java.sql.Date(product.getGmt_modified().getTime()));
-            statement.setDate(5, new java.sql.Date(product.getGmt_create().getTime()));
-            //执行插入操作
-            statement.executeUpdate();
+        connection.setAutoCommit(false); // 关闭自动提交
+
+        try {
+            String sql = "INSERT INTO good_table (uk_id_goods, name_goods, price_goods, gmt_modified, gmt_create) VALUES (?, ?, ?, ?, ?)";
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                // 设置商品的参数
+                statement.setInt(1, product.getUk_id_goods());
+                statement.setString(2, product.getName_goods());
+                statement.setDouble(3, product.getPrice_goods());
+                statement.setDate(4, new java.sql.Date(product.getGmt_modified().getTime()));
+                statement.setDate(5, new java.sql.Date(product.getGmt_create().getTime()));
+                //执行插入操作
+                statement.executeUpdate();
+            }
+
+            connection.commit(); // 提交事务
+        } catch (SQLException ex) {
+            connection.rollback(); // 回滚事务
+            throw ex;
+        } finally {
+            connection.setAutoCommit(true); // 恢复自动提交
         }
-        connection.commit();
     }
 
 
@@ -131,19 +140,30 @@ public class OrderManagementSystem {
      * @throws SQLException 如果在执行数据库操作时发生错误
      */
     public static void deleteProduct(Connection connection, int productId) throws SQLException {
-        // 检查商品是否存在
-        if (!isProductExists(connection, productId)) {
-            throw new IllegalArgumentException("商品不存在");
-        }
+        connection.setAutoCommit(false); // 关闭自动提交
 
-        String sql = "DELETE FROM good_table WHERE uk_id_goods = ?";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, productId);
-            // 执行删除操作
-            statement.executeUpdate();
+        try {
+            // 检查商品是否存在
+            if (!isProductExists(connection, productId)) {
+                throw new IllegalArgumentException("商品不存在");
+            }
+
+            String sql = "DELETE FROM good_table WHERE uk_id_goods = ?";
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                statement.setInt(1, productId);
+                // 执行删除操作
+                statement.executeUpdate();
+            }
+
+            connection.commit(); // 提交事务
+        } catch (SQLException ex) {
+            connection.rollback(); // 回滚事务
+            throw ex;
+        } finally {
+            connection.setAutoCommit(true); // 恢复自动提交
         }
-        connection.commit();
     }
+
 
     /**
      * 删除订单
@@ -154,18 +174,27 @@ public class OrderManagementSystem {
      * @throws IllegalArgumentException 订单不存在
      */
     public static void deleteOrder(Connection connection, int orderId) throws SQLException {
-        // 检查订单是否存在
-        if (!isOrderExists(connection, orderId)) {
-            throw new IllegalArgumentException("订单不存在");
-        }
+        connection.setAutoCommit(false); // 关闭自动提交
+        try {
+            // 检查订单是否存在
+            if (!isOrderExists(connection, orderId)) {
+                throw new IllegalArgumentException("订单不存在");
+            }
 
-        String sql = "DELETE FROM order_project WHERE id_order = ?";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, orderId);
-            // 执行删除操作
-            statement.executeUpdate();
+            String sql = "DELETE FROM order_project WHERE id_order = ?";
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                statement.setInt(1, orderId);
+                // 执行删除操作
+                statement.executeUpdate();
+            }
+
+            connection.commit(); // 提交事务
+        } catch (SQLException ex) {
+            connection.rollback(); // 回滚事务
+            throw ex;
+        } finally {
+            connection.setAutoCommit(true); // 恢复自动提交
         }
-        connection.commit();
     }
 
     /**
@@ -173,11 +202,13 @@ public class OrderManagementSystem {
      *
      * @param connection 数据库连接对象
      * @param orderId    订单id
-     * @return boolean 是否存在该商品
+     * @return boolean 是否存在该订单
      * @throws SQLException 如果在执行数据库操作时发生错误
      */
     public static boolean isOrderExists(Connection connection, int orderId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM order_project WHERE id_order = ?";
+        connection.setAutoCommit(false); // 关闭自动提交
+
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             // 设置查询参数
             statement.setInt(1, orderId);
@@ -185,10 +216,17 @@ public class OrderManagementSystem {
                 if (resultSet.next()) {
                     // 获取结果集中的计数值，如果计数大于零，表示订单存在
                     int count = resultSet.getInt(1);
+                    connection.commit(); // 提交事务
                     return count > 0;
                 }
             }
+        } catch (SQLException ex) {
+            connection.rollback(); // 回滚事务
+            throw ex;
+        } finally {
+            connection.setAutoCommit(true); // 恢复自动提交
         }
+
         // 默认情况下，订单不存在
         return false;
     }
@@ -203,6 +241,8 @@ public class OrderManagementSystem {
      */
     public static boolean isProductExists(Connection connection, int ukIdGoods) throws SQLException {
         String sql = "SELECT COUNT(*) FROM good_table WHERE uk_id_goods = ?";
+        connection.setAutoCommit(false); // 关闭自动提交
+
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             // 设置查询参数
             statement.setInt(1, ukIdGoods);
@@ -210,10 +250,17 @@ public class OrderManagementSystem {
                 if (resultSet.next()) {
                     // 获取结果集中的计数值  如果计数大于零，表示商品存在
                     int count = resultSet.getInt(1);
+                    connection.commit(); // 提交事务
                     return count > 0;
                 }
             }
+        } catch (SQLException ex) {
+            connection.rollback(); // 回滚事务
+            throw ex;
+        } finally {
+            connection.setAutoCommit(true); // 恢复自动提交
         }
+
         // 默认情况下，商品不存在
         return false;
     }
@@ -228,6 +275,9 @@ public class OrderManagementSystem {
      */
     public static Order getOrder(Connection connection, int orderId) throws SQLException {
         String sql = "SELECT id_order, id_good, prices_order, nums_good, time_order, gmt_create, gmt_modified FROM order_project WHERE id_order = ?";
+        // 关闭自动提交
+        connection.setAutoCommit(false);
+
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, orderId);
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -239,9 +289,19 @@ public class OrderManagementSystem {
                     Date time_order = resultSet.getDate("time_order");
                     Date gmt_create = resultSet.getDate("gmt_create");
                     Date gmt_modified = resultSet.getDate("gmt_modified");
-                    return new Order(id_order, id_good, prices_order, nums_good, time_order, gmt_create, gmt_modified);
+                    Order order = new Order(id_order, id_good, prices_order, nums_good, time_order, gmt_create, gmt_modified);
+                    // 提交事务
+                    connection.commit();
+                    return order;
                 }
             }
+        } catch (SQLException ex) {
+            // 回滚事务
+            connection.rollback();
+            throw ex;
+        } finally {
+            // 恢复自动提交
+            connection.setAutoCommit(true);
         }
         return null;
     }
@@ -256,7 +316,10 @@ public class OrderManagementSystem {
      * @throws SQLException 如果查询过程中发生数据库异常
      */
     public static Product getProduct(Connection connection, int goodsId) throws SQLException {
-        String sql = "SELECT uk_id_goods, name_goods, price_goods, gmt_modified, gmt_create FROM good_table WHERE uk_id_goods = ?";
+        String sql = "SELECT uk_id_goods, name_goods, price_goods, gmt_modified, gmt_create FROM goods WHERE uk_id_goods = ?";
+        // 关闭自动提交
+        connection.setAutoCommit(false);
+
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, goodsId);
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -266,9 +329,19 @@ public class OrderManagementSystem {
                     double price_goods = resultSet.getDouble("price_goods");
                     Date gmt_modified = resultSet.getDate("gmt_modified");
                     Date gmt_create = resultSet.getDate("gmt_create");
-                    return new Product(uk_id_goods, name_goods, price_goods, gmt_modified, gmt_create);
+                    Product product = new Product(uk_id_goods, name_goods, price_goods, gmt_modified, gmt_create);
+                    // 提交事务
+                    connection.commit();
+                    return product;
                 }
             }
+        } catch (SQLException ex) {
+            // 回滚事务
+            connection.rollback();
+            throw ex;
+        } finally {
+            // 恢复自动提交
+            connection.setAutoCommit(true);
         }
         return null;
     }
