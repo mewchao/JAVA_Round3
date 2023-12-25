@@ -207,8 +207,8 @@ public class OrderManagementSystem {
      */
     public static boolean isOrderExists(Connection connection, int orderId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM order_project WHERE id_order = ?";
-        connection.setAutoCommit(false); // 关闭自动提交
-
+        // 关闭自动提交
+        connection.setAutoCommit(false);
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             // 设置查询参数
             statement.setInt(1, orderId);
@@ -216,15 +216,18 @@ public class OrderManagementSystem {
                 if (resultSet.next()) {
                     // 获取结果集中的计数值，如果计数大于零，表示订单存在
                     int count = resultSet.getInt(1);
-                    connection.commit(); // 提交事务
+                    // 提交事务
+                    connection.commit();
                     return count > 0;
                 }
             }
         } catch (SQLException ex) {
-            connection.rollback(); // 回滚事务
+            // 回滚事务
+            connection.rollback();
             throw ex;
         } finally {
-            connection.setAutoCommit(true); // 恢复自动提交
+            // 恢复自动提交
+            connection.setAutoCommit(true);
         }
 
         // 默认情况下，订单不存在
@@ -250,15 +253,18 @@ public class OrderManagementSystem {
                 if (resultSet.next()) {
                     // 获取结果集中的计数值  如果计数大于零，表示商品存在
                     int count = resultSet.getInt(1);
-                    connection.commit(); // 提交事务
+                    // 提交事务
+                    connection.commit();
                     return count > 0;
                 }
             }
         } catch (SQLException ex) {
-            connection.rollback(); // 回滚事务
+            // 回滚事务
+            connection.rollback();
             throw ex;
         } finally {
-            connection.setAutoCommit(true); // 恢复自动提交
+            // 恢复自动提交
+            connection.setAutoCommit(true);
         }
 
         // 默认情况下，商品不存在
