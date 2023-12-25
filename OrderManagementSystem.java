@@ -13,12 +13,6 @@ public class OrderManagementSystem {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        /**
-         * 修改框架线程池的核心参数
-         *
-         * @param threadPoolBaseInfo 修改线程池的基础参数
-         * @return 线程池核心参数修改结果
-         */
         // 测试代码
         try {
             // 获取数据库连接
@@ -29,8 +23,6 @@ public class OrderManagementSystem {
             addProduct(connection, product1);
 
             // 添加订单
-            List<Product> products = new ArrayList<>();
-            products.add(product1);
             Order order1 = new Order(1, 1, 10.0, 1, new Date(), new Date(), new Date());
             addOrder(connection, order1);
 
@@ -54,30 +46,37 @@ public class OrderManagementSystem {
             e.printStackTrace();
         }
     }
+
     /**
      * 添加商品
      *
-     * @param
-     * @return
+     * @param connection 数据库连接对象
+     * @param product    要添加的商品对象
+     * @throws SQLException 如果在执行数据库操作时发生错误
      */
     public static void addProduct(Connection connection, Product product) throws SQLException {
-        String sql = "INSERT INTO products (id, name, price, created_at, updated_at) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO good_table (uk_id_goods, name_goods, price_goods, gmt_modified, gmt_create) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            // 设置商品的参数
             statement.setInt(1, product.getUk_id_goods());
             statement.setString(2, product.getName_goods());
             statement.setDouble(3, product.getPrice_goods());
             statement.setDate(4, new java.sql.Date(product.getGmt_modified().getTime()));
             statement.setDate(5, new java.sql.Date(product.getGmt_create().getTime()));
+            //执行插入操作
             statement.executeUpdate();
         }
     }
+
+
     /**
+     * 添加订单
      *
-     *
-     * @param
-     * @return
+     * @param connection 数据库连接对象
+     * @param order      要添加的订单对象
+     * @throws SQLException                 如果在执行数据库操作时发生错误
+     * @throws IllegalArgumentException     如果商品不存在、价格小于等于零或数量小于等于零
      */
-    // 添加订单
     public static void addOrder(Connection connection, Order order) throws SQLException {
         // 检查商品是否存在
         if (!isProductExists(connection, order.getId_good())) {
@@ -94,7 +93,8 @@ public class OrderManagementSystem {
             throw new IllegalArgumentException("数量必须大于零");
         }
 
-        String sql = "INSERT INTO orders (id, id_good, prices_order, nums_good, time_order, gmt_create, gmt_modified) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO order_project  (id_order, id_good, prices_order, nums_good, time_order, gmt_create, gmt_modified) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        // 设置订单的id_order
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, order.getId_order());
             statement.setInt(2, order.getId_good());
@@ -103,10 +103,10 @@ public class OrderManagementSystem {
             statement.setDate(5, new java.sql.Date(order.getTime_order().getTime()));
             statement.setDate(6, new java.sql.Date(order.getGmt_create().getTime()));
             statement.setDate(7, new java.sql.Date(order.getGmt_modified().getTime()));
+            // 执行插入操作
             statement.executeUpdate();
         }
     }
-
     /**
      * 查询商品是否存在
      *
@@ -136,12 +136,12 @@ public class OrderManagementSystem {
      * @return
      */
     public static Order getOrder(Connection connection, int orderId) throws SQLException {
-        String sql = "SELECT * FROM orders WHERE id = ?";
+        String sql = "SELECT * FROM order_project WHERE id_order = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, orderId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
-                    int id_order = resultSet.getInt("id");
+                    int id_order = resultSet.getInt("id_order");
                     int id_good = resultSet.getInt("id_good");
                     double prices_order = resultSet.getDouble("prices_order");
                     int nums_good = resultSet.getInt("nums_good");
@@ -161,7 +161,7 @@ public class OrderManagementSystem {
      * @return
      */
     public static void updateOrderPrice(Connection connection, int orderId, double newPrice) throws SQLException {
-        String sql = "UPDATE orders SET prices_order = ? WHERE id = ?";
+        String sql = "UPDATE order_project SET prices_order = ? WHERE id_order = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setDouble(1, newPrice);
             statement.setInt(2, orderId);
@@ -175,7 +175,7 @@ public class OrderManagementSystem {
      * @return
      */
     public static void removeProductFromOrder(Connection connection, int orderId, int productId) throws SQLException {
-        String sql = "DELETE FROM orders WHERE id = ? AND id_good = ?";
+        String sql = "DELETE FROM order_project WHERE id_order = ? AND id_good = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, orderId);
             statement.setInt(2, productId);
