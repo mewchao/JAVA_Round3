@@ -1,3 +1,4 @@
+import java.lang.management.GarbageCollectorMXBean;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,20 +33,24 @@ public class OrderManagementSystem {
 //            deleteOrder(connection, orderId);
 //            deleteProduct(connection, productId);
 
+            // 查询商品
+            Product retrievedProduct = getProduct(connection, 1);
+            System.out.println(retrievedProduct);
 
             // 查询订单
             Order retrievedOrder = getOrder(connection, 1);
             System.out.println(retrievedOrder);
 
-            // 更新订单价格
-            updateOrderPrice(connection, 1, 15.0);
-            retrievedOrder = getOrder(connection, 1);
-            System.out.println(retrievedOrder);
+
+//            // 更新订单价格
+//            updateOrderPrice(connection, 1, 15.0);
+//            retrievedOrder = getOrder(connection, 1);
+//            System.out.println(retrievedOrder);
 
             // 删除订单中的商品
-            removeProductFromOrder(connection, 1, 1);
-            retrievedOrder = getOrder(connection, 1);
-            System.out.println(retrievedOrder);
+//            removeProductFromOrder(connection, 1, 1);
+//            retrievedOrder = getOrder(connection, 1);
+//            System.out.println(retrievedOrder);
 
             // 关闭数据库连接
             JDBCUtils.close(connection, null, null);
@@ -144,7 +149,7 @@ public class OrderManagementSystem {
      * 删除订单
      *
      * @param connection 数据库连接对象
-     * @param orderId    要添加的订单对象的id
+     * @param orderId    要删除的订单对象的id
      * @throws SQLException             如果在执行数据库操作时发生错误
      * @throws IllegalArgumentException 订单不存在
      */
@@ -162,7 +167,6 @@ public class OrderManagementSystem {
         }
         connection.commit();
     }
-
 
     /**
      * 查询订单是否存在
@@ -215,13 +219,15 @@ public class OrderManagementSystem {
     }
 
     /**
-     * 查询订单
+     * 根据订单ID查询订单
      *
-     * @param
-     * @return
+     * @param connection 数据库连接
+     * @param orderId    订单ID
+     * @return 订单对象，如果不存在则返回null
+     * @throws SQLException 如果查询过程中发生数据库异常
      */
     public static Order getOrder(Connection connection, int orderId) throws SQLException {
-        String sql = "SELECT * FROM order_project WHERE id_order = ?";
+        String sql = "SELECT id_order, id_good, prices_order, nums_good, time_order, gmt_create, gmt_modified FROM order_project WHERE id_order = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, orderId);
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -240,33 +246,32 @@ public class OrderManagementSystem {
         return null;
     }
 
-    /**
-     * 更新订单价格
-     *
-     * @param
-     * @return
-     */
-    public static void updateOrderPrice(Connection connection, int orderId, double newPrice) throws SQLException {
-        String sql = "UPDATE order_project SET prices_order = ? WHERE id_order = ?";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setDouble(1, newPrice);
-            statement.setInt(2, orderId);
-            statement.executeUpdate();
-        }
-    }
 
     /**
-     * 从订单中删除商品
+     * 根据商品ID查询商品
      *
-     * @param
-     * @return
+     * @param connection 数据库连接
+     * @param goodsId    商品ID
+     * @return 商品对象，如果不存在则返回null
+     * @throws SQLException 如果查询过程中发生数据库异常
      */
-    public static void removeProductFromOrder(Connection connection, int orderId, int productId) throws SQLException {
-        String sql = "DELETE FROM order_project WHERE id_order = ? AND id_good = ?";
+    public static Product getProduct(Connection connection, int goodsId) throws SQLException {
+        String sql = "SELECT uk_id_goods, name_goods, price_goods, gmt_modified, gmt_create FROM good_table WHERE uk_id_goods = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, orderId);
-            statement.setInt(2, productId);
-            statement.executeUpdate();
+            statement.setInt(1, goodsId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    int uk_id_goods = resultSet.getInt("uk_id_goods");
+                    String name_goods = resultSet.getString("name_goods");
+                    double price_goods = resultSet.getDouble("price_goods");
+                    Date gmt_modified = resultSet.getDate("gmt_modified");
+                    Date gmt_create = resultSet.getDate("gmt_create");
+                    return new Product(uk_id_goods, name_goods, price_goods, gmt_modified, gmt_create);
+                }
+            }
         }
+        return null;
     }
+
+
 }
