@@ -2,9 +2,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 public class OrderManagementSystem {
     public static void main(String[] args) {
@@ -17,6 +15,7 @@ public class OrderManagementSystem {
         try {
             // 获取数据库连接
             Connection connection = JDBCUtils.getConnection();
+            connection.setAutoCommit(false);
 
             // 添加商品
             Product product1 = new Product(1, "商品1", 10.0, new Date(), new Date());
@@ -25,6 +24,14 @@ public class OrderManagementSystem {
             // 添加订单
             Order order1 = new Order(1, 1, 10.0, 1, new Date(), new Date(), new Date());
             addOrder(connection, order1);
+
+//            // 要删除的商品ID
+//            int productId = 1;
+//            int orderId = 1;
+//            // 要删除的商品ID
+//            deleteOrder(connection, orderId);
+//            deleteProduct(connection, productId);
+
 
             // 查询订单
             Order retrievedOrder = getOrder(connection, 1);
@@ -47,6 +54,7 @@ public class OrderManagementSystem {
         }
     }
 
+
     /**
      * 添加商品
      *
@@ -66,6 +74,7 @@ public class OrderManagementSystem {
             //执行插入操作
             statement.executeUpdate();
         }
+        connection.commit();
     }
 
 
@@ -74,8 +83,8 @@ public class OrderManagementSystem {
      *
      * @param connection 数据库连接对象
      * @param order      要添加的订单对象
-     * @throws SQLException                 如果在执行数据库操作时发生错误
-     * @throws IllegalArgumentException     如果商品不存在、价格小于等于零或数量小于等于零
+     * @throws SQLException             如果在执行数据库操作时发生错误
+     * @throws IllegalArgumentException 如果商品不存在、价格小于等于零或数量小于等于零
      */
     public static void addOrder(Connection connection, Order order) throws SQLException {
         // 检查商品是否存在
@@ -106,7 +115,80 @@ public class OrderManagementSystem {
             // 执行插入操作
             statement.executeUpdate();
         }
+        connection.commit();
     }
+
+    /**
+     * 删除商品
+     *
+     * @param connection 数据库连接对象
+     * @param productId  要删除的商品id
+     * @throws SQLException 如果在执行数据库操作时发生错误
+     */
+    public static void deleteProduct(Connection connection, int productId) throws SQLException {
+        // 检查商品是否存在
+        if (!isProductExists(connection, productId)) {
+            throw new IllegalArgumentException("商品不存在");
+        }
+
+        String sql = "DELETE FROM good_table WHERE uk_id_goods = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, productId);
+            // 执行删除操作
+            statement.executeUpdate();
+        }
+        connection.commit();
+    }
+
+    /**
+     * 删除订单
+     *
+     * @param connection 数据库连接对象
+     * @param orderId    要添加的订单对象的id
+     * @throws SQLException             如果在执行数据库操作时发生错误
+     * @throws IllegalArgumentException 订单不存在
+     */
+    public static void deleteOrder(Connection connection, int orderId) throws SQLException {
+        // 检查订单是否存在
+        if (!isOrderExists(connection, orderId)) {
+            throw new IllegalArgumentException("订单不存在");
+        }
+
+        String sql = "DELETE FROM order_project WHERE id_order = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, orderId);
+            // 执行删除操作
+            statement.executeUpdate();
+        }
+        connection.commit();
+    }
+
+
+    /**
+     * 查询订单是否存在
+     *
+     * @param connection 数据库连接对象
+     * @param orderId    订单id
+     * @return boolean 是否存在该商品
+     * @throws SQLException 如果在执行数据库操作时发生错误
+     */
+    public static boolean isOrderExists(Connection connection, int orderId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM order_project WHERE id_order = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            // 设置查询参数
+            statement.setInt(1, orderId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    // 获取结果集中的计数值，如果计数大于零，表示订单存在
+                    int count = resultSet.getInt(1);
+                    return count > 0;
+                }
+            }
+        }
+        // 默认情况下，订单不存在
+        return false;
+    }
+
     /**
      * 查询商品是否存在
      *
@@ -118,14 +200,17 @@ public class OrderManagementSystem {
     public static boolean isProductExists(Connection connection, int ukIdGoods) throws SQLException {
         String sql = "SELECT COUNT(*) FROM good_table WHERE uk_id_goods = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            // 设置查询参数
             statement.setInt(1, ukIdGoods);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
+                    // 获取结果集中的计数值  如果计数大于零，表示商品存在
                     int count = resultSet.getInt(1);
                     return count > 0;
                 }
             }
         }
+        // 默认情况下，商品不存在
         return false;
     }
 
@@ -154,6 +239,7 @@ public class OrderManagementSystem {
         }
         return null;
     }
+
     /**
      * 更新订单价格
      *
@@ -168,6 +254,7 @@ public class OrderManagementSystem {
             statement.executeUpdate();
         }
     }
+
     /**
      * 从订单中删除商品
      *
