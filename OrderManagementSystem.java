@@ -1,3 +1,6 @@
+import src.main.com.example.model.Order;
+import src.main.com.example.model.Product;
+import src.main.com.example.db.JDBCUtils;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -5,75 +8,6 @@ import java.sql.SQLException;
 import java.util.Date;
 
 public class OrderManagementSystem {
-    public static void main(String[] args) {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        // 测试代码
-        try {
-            // 获取数据库连接
-            Connection connection = JDBCUtils.getConnection();
-//            connection.setAutoCommit(false);
-
-            // 添加商品
-            Product product1 = new Product(1, "商品1", 10.0, new Date(), new Date());
-            addProduct(connection, product1);
-
-            // 添加订单
-            Order order1 = new Order(1, 1, 10.0, 1, new Date(), new Date(), new Date());
-            addOrder(connection, order1);
-
-//            // 要删除的商品ID
-//            int productId = 1;
-//            int orderId = 1;
-//            // 要删除的商品ID
-//            deleteOrder(connection, orderId);
-//            deleteProduct(connection, productId);
-
-            // 查询商品
-            Product retrievedProduct = getProduct(connection, 1);
-            System.out.println(retrievedProduct);
-
-            // 查询订单
-            Order retrievedOrder = getOrder(connection, 1);
-            System.out.println(retrievedOrder);
-
-
-            int orderIdToUpdate = 1;  // 要修改的订单ID
-            double newPrices = 99.99;  // 新的订单价格
-            int newNums = 5;  // 新的商品数量
-
-            try {
-                updateOrder(connection, orderIdToUpdate, newPrices, newNums);
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            } finally {
-                // 关闭数据库连接等清理操作
-            }
-
-            // 假设已经建立了数据库连接
-            int goodsIdToUpdate = 1;  // 要修改的商品ID
-            String newName = "新商品名称";  // 新的商品名称
-            double newPrice = 19.99;  // 新的商品价格
-
-            try {
-                updateProduct(connection, goodsIdToUpdate, newName, newPrice);
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            } finally {
-                // 关闭数据库连接等清理操作
-            }
-
-            // 关闭数据库连接
-            JDBCUtils.close(connection, null, null);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-
     /**
      * 添加商品
      *

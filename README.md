@@ -1,4 +1,22 @@
-
+```
+src
+├── main
+│   ├── java
+│       └── com
+│           └── example                         
+│               ├── db                     // 存放与数据库相关的类或工具
+│               │   └── JDBCUtils.java     // JDBC操作工具类
+│               ├── model                  // 存放实体类
+│               │   ├── Order.java         // 订单实体类
+│               │   └── Product.java       // 商品实体类
+│               └── Main.java              // 主程序入口
+│ 
+└── test
+    ├── java
+        └── com
+            └── example
+                └── Test.java               // 测试类
+```
 ```
 public class JDBCDemo {
 public static void main(String[] args) throws Exception {   //下面方法有不同的异常，我直接抛出一个大的异常

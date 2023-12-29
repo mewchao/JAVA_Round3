@@ -1,3 +1,5 @@
+package src.main.com.example.model;
+
 import java.util.Date;
 
 public class Order {
