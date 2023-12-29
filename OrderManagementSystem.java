@@ -41,15 +41,30 @@ public class OrderManagementSystem {
             System.out.println(retrievedOrder);
 
 
-//            // 更新订单价格
-//            updateOrderPrice(connection, 1, 15.0);
-//            retrievedOrder = getOrder(connection, 1);
-//            System.out.println(retrievedOrder);
+            int orderIdToUpdate = 1;  // 要修改的订单ID
+            double newPrices = 99.99;  // 新的订单价格
+            int newNums = 5;  // 新的商品数量
 
-            // 删除订单中的商品
-//            removeProductFromOrder(connection, 1, 1);
-//            retrievedOrder = getOrder(connection, 1);
-//            System.out.println(retrievedOrder);
+            try {
+                updateOrder(connection, orderIdToUpdate, newPrices, newNums);
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            } finally {
+                // 关闭数据库连接等清理操作
+            }
+
+            // 假设已经建立了数据库连接
+            int goodsIdToUpdate = 1;  // 要修改的商品ID
+            String newName = "新商品名称";  // 新的商品名称
+            double newPrice = 19.99;  // 新的商品价格
+
+            try {
+                updateProduct(connection, goodsIdToUpdate, newName, newPrice);
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            } finally {
+                // 关闭数据库连接等清理操作
+            }
 
             // 关闭数据库连接
             JDBCUtils.close(connection, null, null);
@@ -350,6 +365,82 @@ public class OrderManagementSystem {
             connection.setAutoCommit(true);
         }
         return null;
+    }
+
+    /**
+     * 根据商品ID修改商品信息
+     *
+     * @param connection 数据库连接
+     * @param goodsId    商品ID
+     * @param newName    新的商品名称
+     * @param newPrice   新的商品价格
+     * @throws SQLException 如果修改过程中发生数据库异常
+     */
+    public static void updateProduct(Connection connection, int goodsId, String newName, double newPrice) throws SQLException {
+        String sql = "UPDATE goods SET name_goods = ?, price_goods = ? WHERE uk_id_goods = ?";
+        // 关闭自动提交
+        connection.setAutoCommit(false);
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, newName);
+            statement.setDouble(2, newPrice);
+            statement.setInt(3, goodsId);
+            int rowsAffected = statement.executeUpdate();
+
+            // 根据受影响的行数判断修改是否成功
+            if (rowsAffected > 0) {
+                // 提交事务
+                connection.commit();
+                System.out.println("商品信息修改成功！");
+            } else {
+                System.out.println("未找到对应的商品，修改失败！");
+            }
+        } catch (SQLException ex) {
+            // 回滚事务
+            connection.rollback();
+            throw ex;
+        } finally {
+            // 恢复自动提交
+            connection.setAutoCommit(true);
+        }
+    }
+
+    /**
+     * 根据订单ID修改订单信息
+     *
+     * @param connection 数据库连接
+     * @param orderId    订单ID
+     * @param newPrices  新的订单价格
+     * @param newNums    新的商品数量
+     * @throws SQLException 如果修改过程中发生数据库异常
+     */
+    public static void updateOrder(Connection connection, int orderId, double newPrices, int newNums) throws SQLException {
+        String sql = "UPDATE order_project SET prices_order = ?, nums_good = ? WHERE id_order = ?";
+        // 关闭自动提交
+        connection.setAutoCommit(false);
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setDouble(1, newPrices);
+            statement.setInt(2, newNums);
+            statement.setInt(3, orderId);
+            int rowsAffected = statement.executeUpdate();
+
+            // 根据受影响的行数判断修改是否成功
+            if (rowsAffected > 0) {
+                // 提交事务
+                connection.commit();
+                System.out.println("订单信息修改成功！");
+            } else {
+                System.out.println("未找到对应的订单，修改失败！");
+            }
+        } catch (SQLException ex) {
+            // 回滚事务
+            connection.rollback();
+            throw ex;
+        } finally {
+            // 恢复自动提交
+            connection.setAutoCommit(true);
+        }
     }
 
 
