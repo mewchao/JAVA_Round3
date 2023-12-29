@@ -188,7 +188,6 @@ public class OrderManagementSystem {
             connection.rollback();
             throw ex;
         }
-
         // 默认情况下，订单不存在
         return false;
     }

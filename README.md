@@ -1,3 +1,4 @@
+### 项目框架
 ```
 src
 ├── main
@@ -18,14 +19,14 @@ src
             └── example
                 └── Test.java               // 测试类
 ```
-
+### [DEMOS]
 ```
 public class JDBCDemo {
-public static void main(String[] args) throws Exception {   //下面方法有不同的异常，我直接抛出一个大的异常
+public static void main(String[] args) throws Exception {   
 
         //1、导入驱动jar包
         //2、注册驱动
-        Class.forName("com.mysql.jdbc.Driver");
+        Class.forName("com.mysql.cj.jdbc.Driver");
 
         //3、获取数据库的连接对象
         Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sys", "root", "123456789");
@@ -48,17 +49,35 @@ public static void main(String[] args) throws Exception {   //下面方法有不
     }
 }
 ```
+### [KNOWS]
+##### 事务的概念
+* 事务可以确保一系列的数据库操作要么全部成功执行，要么全部失败回滚，以保持数据库的一致性和完整性。    
+
+#####  ACID 特性：
+* 原子性（Atomicity）：事务是原子的，它要么全部成功执行，要么全部失败回滚。如果其中一个操作失败，整个事务都将失败，不会留下部分修改。
+* 一致性（Consistency）：事务在执行前后，数据库从一个一致的状态转移到另一个一致的状态。这意味着事务必须遵循数据库的完整性约束，如主键、唯一性约束等。
+* 隔离性（Isolation）：多个事务可以并发执行，但彼此之间不能互相干扰。一个事务的修改在提交之前对其他事务是不可见的。
+* 持久性（Durability）：一旦事务提交成功，它的结果将永久保存在数据库中，即使系统发生故障也不会丢失。
 
 
-在addProduct方法中，事务处理的代码是正确的，因此不会报错。代码的执行顺序如下：
-connection.setAutoCommit(false); 将连接的自动提交模式设置为 false，即关闭自动提交。
-try 块中执行插入操作，将商品数据插入到数据库中。
-connection.commit(); 提交事务，将之前的操作作为一个事务进行提交。
-如果在执行插入操作时发生了异常，则会进入 catch 块，执行回滚操作 connection.rollback();，将事务回滚到起始状态，并将异常继续抛出。
-由于你提供的代码中没有显示异常处理的逻辑，我假设在这段代码中没有发生异常，因此事务会被成功提交，而不会执行回滚操作。
-相比之下，在addOrder方法中，如果以下任何一个条件不满足，都会抛出异常并导致事务回滚：
-!isProductExists(connection, order.getId_good())：检查商品是否存在，如果商品不存在，则抛出异常。
-order.getPrices_order() <= 0：检查价格是否大于零，如果价格小于或等于零，则抛出异常。
-order.getNums_good() <= 0：检查数量是否大于零，如果数量小于或等于零，则抛出异常。
-如果其中任何一个条件不满足，将抛出异常，事务会回滚到起始状态，而不会执行 connection.commit()。因此，事务不会被成功提交，导致该段代码报错。
-你可以根据具体的业务逻辑来检查为什么在执行 addOrder 方法时会出现异常，并相应地处理或修复它们。
+##### 提交事务和回滚事务
+* 在 JDBC 中，要提交事务，可以使用 commit() 方法，如上面的示例所示。提交事务后，其中的所有操作将成为数据库的一部分。
+* 如果在事务过程中出现了问题，您可以使用 rollback() 方法来回滚事务，撤销所有未提交的更改，将数据库恢复到事务开始之前的状态
+
+
+### [BUGS]
+报错java.sql.SQLNonTransientConnectionException: Can't call rollback when autocommit=true
+```
+try {
+// 设置自动提交为false
+connection.setAutoCommit(false);
+} catch (SQLException ex) {
+// 回滚事务
+connection.rollback();
+throw ex;
+} finally {
+// 不再恢复自动提交状态
+// connection.setAutoCommit(true);
+}
+```
+因为在没有异常的情况下，connection.commit()已经提交了事务，而手动设置自动提交为true可能导致冲突
