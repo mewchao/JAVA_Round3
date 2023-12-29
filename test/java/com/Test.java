@@ -27,26 +27,26 @@ public class Test {
 
             // 添加商品
             Product product1 = new Product(1, "商品1", 10.0, new Date(), new Date());
-            OrderManagementSystem.addProduct(connection, product1);
+            orderManagementSystem.addProduct(connection, product1);
 
             // 添加订单
             Order order1 = new Order(1, 1, 10.0, 1, new Date(), new Date(), new Date());
-            OrderManagementSystem.addOrder(connection, order1);
+            orderManagementSystem.addOrder(connection, order1);
 
             // 要删除的商品ID
             int productId = 1;
             int orderId = 1;
 
             // 要删除的商品ID
-//            OrderManagementSystem.deleteOrder(connection, orderId);
-//            OrderManagementSystem.deleteProduct(connection, productId);
+//            orderManagementSystem.deleteOrder(connection, orderId)
+//            orderManagementSystem.deleteProduct(connection, productId);
 
             // 查询商品
-            Product retrievedProduct = OrderManagementSystem.getProduct(connection, 1);
+            Product retrievedProduct = orderManagementSystem.getProduct(connection, 1);
             System.out.println(retrievedProduct);
 
             // 查询订单
-            Order retrievedOrder = OrderManagementSystem.getOrder(connection, 1);
+            Order retrievedOrder = orderManagementSystem.getOrder(connection, 1);
             System.out.println(retrievedOrder);
 
             // 要修改的订单ID
@@ -57,7 +57,7 @@ public class Test {
             int newNums = 5;
 
             try {
-                OrderManagementSystem.updateOrder(connection, orderIdToUpdate, newPrices, newNums);
+                orderManagementSystem.updateOrder(connection, orderIdToUpdate, newPrices, newNums);
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
@@ -68,7 +68,7 @@ public class Test {
             double newPrice = 19.99;
 
             try {
-                OrderManagementSystem.updateProduct(connection, goodsIdToUpdate, newName, newPrice);
+                orderManagementSystem.updateProduct(connection, goodsIdToUpdate, newName, newPrice);
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
