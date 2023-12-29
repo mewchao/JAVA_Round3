@@ -18,9 +18,9 @@ public class OrderManagementSystem {
      * @throws SQLException 如果在执行数据库操作时发生错误
      */
     public static void addProduct(Connection connection, Product product) throws SQLException {
-        // 关闭自动提交
+        //关闭自动提交
         connection.setAutoCommit(false);
-
+        //try 块中执行插入操作，将商品数据插入到数据库中。 connection.commit(); 提交事务，将之前的操作作为一个事务进行提交
         try {
             String sql = "INSERT INTO good_table (uk_id_goods, name_goods, price_goods, gmt_modified, gmt_create) VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -33,13 +33,12 @@ public class OrderManagementSystem {
                 //执行插入操作
                 statement.executeUpdate();
             }
-
-            connection.commit(); // 提交事务
+            // 提交事务
+            connection.commit();
         } catch (SQLException ex) {
-            connection.rollback(); // 回滚事务
+            // 回滚事务
+            connection.rollback();
             throw ex;
-        } finally {
-            connection.setAutoCommit(true); // 恢复自动提交
         }
     }
 
@@ -55,36 +54,46 @@ public class OrderManagementSystem {
     public static void addOrder(Connection connection, Order order) throws SQLException {
         // 关闭自动提交
         connection.setAutoCommit(false);
-        // 检查商品是否存在
-        if (!isProductExists(connection, order.getId_good())) {
-            throw new IllegalArgumentException("商品不存在");
-        }
+        try {
+            if (!isProductExists(connection, order.getId_good())) {
+                System.out.println("商品不存在");
+                throw new IllegalArgumentException("商品不存在");
+            }
 
-        // 检查价格是否合法
-        if (order.getPrices_order() <= 0) {
-            throw new IllegalArgumentException("价格必须大于零");
-        }
+            if (order.getPrices_order() <= 0) {
+                System.out.println("价格必须大于零");
+                throw new IllegalArgumentException("价格必须大于零");
+            }
 
-        // 检查数量是否合法
-        if (order.getNums_good() <= 0) {
-            throw new IllegalArgumentException("数量必须大于零");
-        }
+            if (order.getNums_good() <= 0) {
+                System.out.println("数量必须大于零");
+                throw new IllegalArgumentException("数量必须大于零");
+            }
 
-        String sql = "INSERT INTO order_project  (id_order, id_good, prices_order, nums_good, time_order, gmt_create, gmt_modified) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        // 设置订单的id_order
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, order.getId_order());
-            statement.setInt(2, order.getId_good());
-            statement.setDouble(3, order.getPrices_order());
-            statement.setInt(4, order.getNums_good());
-            statement.setDate(5, new java.sql.Date(order.getTime_order().getTime()));
-            statement.setDate(6, new java.sql.Date(order.getGmt_create().getTime()));
-            statement.setDate(7, new java.sql.Date(order.getGmt_modified().getTime()));
-            // 执行插入操作
-            statement.executeUpdate();
+            String sql = "INSERT INTO order_project  (id_order, id_good, prices_order, nums_good, time_order, gmt_create, gmt_modified) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                statement.setInt(1, order.getId_order());
+                statement.setInt(2, order.getId_good());
+                statement.setDouble(3, order.getPrices_order());
+                statement.setInt(4, order.getNums_good());
+                statement.setDate(5, new java.sql.Date(order.getTime_order().getTime()));
+                statement.setDate(6, new java.sql.Date(order.getGmt_create().getTime()));
+                statement.setDate(7, new java.sql.Date(order.getGmt_modified().getTime()));
+                statement.executeUpdate();
+            }
+            // 提交事务
+            connection.commit();
+        } catch (SQLException ex) {
+            // 回滚事务
+            connection.rollback();
+            throw ex;
+        } finally {
+            // 恢复自动提交状态
+            connection.setAutoCommit(true);
         }
-        connection.commit();
     }
+
 
     /**
      * 删除商品
@@ -114,8 +123,6 @@ public class OrderManagementSystem {
         } catch (SQLException ex) {
             connection.rollback(); // 回滚事务
             throw ex;
-        } finally {
-            connection.setAutoCommit(true); // 恢复自动提交
         }
     }
 
@@ -148,8 +155,6 @@ public class OrderManagementSystem {
         } catch (SQLException ex) {
             connection.rollback(); // 回滚事务
             throw ex;
-        } finally {
-            connection.setAutoCommit(true); // 恢复自动提交
         }
     }
 
@@ -182,9 +187,6 @@ public class OrderManagementSystem {
             // 回滚事务
             connection.rollback();
             throw ex;
-        } finally {
-            // 恢复自动提交
-            connection.setAutoCommit(true);
         }
 
         // 默认情况下，订单不存在
@@ -220,11 +222,7 @@ public class OrderManagementSystem {
             // 回滚事务
             connection.rollback();
             throw ex;
-        } finally {
-            // 恢复自动提交
-            connection.setAutoCommit(true);
         }
-
         // 默认情况下，商品不存在
         return false;
     }
@@ -263,9 +261,6 @@ public class OrderManagementSystem {
             // 回滚事务
             connection.rollback();
             throw ex;
-        } finally {
-            // 恢复自动提交
-            connection.setAutoCommit(true);
         }
         return null;
     }
@@ -282,7 +277,7 @@ public class OrderManagementSystem {
     public static Product getProduct(Connection connection, int goodsId) throws SQLException {
         // 关闭自动提交
         connection.setAutoCommit(false);
-        String sql = "SELECT uk_id_goods, name_goods, price_goods, gmt_modified, gmt_create FROM goods WHERE uk_id_goods = ?";
+        String sql = "SELECT uk_id_goods, name_goods, price_goods, gmt_modified, gmt_create FROM good_table WHERE uk_id_goods = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, goodsId);
@@ -303,9 +298,6 @@ public class OrderManagementSystem {
             // 回滚事务
             connection.rollback();
             throw ex;
-        } finally {
-            // 恢复自动提交
-            connection.setAutoCommit(true);
         }
         return null;
     }
@@ -322,7 +314,7 @@ public class OrderManagementSystem {
     public static void updateProduct(Connection connection, int goodsId, String newName, double newPrice) throws SQLException {
         // 关闭自动提交
         connection.setAutoCommit(false);
-        String sql = "UPDATE goods SET name_goods = ?, price_goods = ? WHERE uk_id_goods = ?";
+        String sql = "UPDATE good_table SET name_goods = ?, price_goods = ? WHERE uk_id_goods = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, newName);
@@ -342,9 +334,6 @@ public class OrderManagementSystem {
             // 回滚事务
             connection.rollback();
             throw ex;
-        } finally {
-            // 恢复自动提交
-            connection.setAutoCommit(true);
         }
     }
 
@@ -380,9 +369,6 @@ public class OrderManagementSystem {
             // 回滚事务
             connection.rollback();
             throw ex;
-        } finally {
-            // 恢复自动提交
-            connection.setAutoCommit(true);
         }
     }
 

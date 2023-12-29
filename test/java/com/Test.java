@@ -23,7 +23,7 @@ public class Test {
         try {
             // 获取数据库连接
             Connection connection = JDBCUtils.getConnection();
-//            connection.setAutoCommit(false);
+            connection.setAutoCommit(false);
 
             // 添加商品
             Product product1 = new Product(1, "商品1", 10.0, new Date(), new Date());
@@ -38,8 +38,8 @@ public class Test {
             int orderId = 1;
 
             // 要删除的商品ID
-            OrderManagementSystem.deleteOrder(connection, orderId);
-            OrderManagementSystem.deleteProduct(connection, productId);
+//            OrderManagementSystem.deleteOrder(connection, orderId);
+//            OrderManagementSystem.deleteProduct(connection, productId);
 
             // 查询商品
             Product retrievedProduct = OrderManagementSystem.getProduct(connection, 1);
@@ -62,10 +62,10 @@ public class Test {
                 ex.printStackTrace();
             }
 
-            // 假设已经建立了数据库连接
-            int goodsIdToUpdate = 1;  // 要修改的商品ID
-            String newName = "新商品名称";  // 新的商品名称
-            double newPrice = 19.99;  // 新的商品价格
+            // 要修改的商品ID 新的商品名称 新的商品价格
+            int goodsIdToUpdate = 1;
+            String newName = "新商品名称";
+            double newPrice = 19.99;
 
             try {
                 OrderManagementSystem.updateProduct(connection, goodsIdToUpdate, newName, newPrice);
