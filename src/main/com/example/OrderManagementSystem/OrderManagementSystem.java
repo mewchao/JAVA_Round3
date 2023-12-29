@@ -2,7 +2,7 @@ package src.main.com.example.OrderManagementSystem;
 
 import src.main.com.example.model.Order;
 import src.main.com.example.model.Product;
-import src.main.com.example.db.JDBCUtils;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,7 +18,8 @@ public class OrderManagementSystem {
      * @throws SQLException 如果在执行数据库操作时发生错误
      */
     public static void addProduct(Connection connection, Product product) throws SQLException {
-        connection.setAutoCommit(false); // 关闭自动提交
+        // 关闭自动提交
+        connection.setAutoCommit(false);
 
         try {
             String sql = "INSERT INTO good_table (uk_id_goods, name_goods, price_goods, gmt_modified, gmt_create) VALUES (?, ?, ?, ?, ?)";
@@ -52,6 +53,8 @@ public class OrderManagementSystem {
      * @throws IllegalArgumentException 如果商品不存在、价格小于等于零或数量小于等于零
      */
     public static void addOrder(Connection connection, Order order) throws SQLException {
+        // 关闭自动提交
+        connection.setAutoCommit(false);
         // 检查商品是否存在
         if (!isProductExists(connection, order.getId_good())) {
             throw new IllegalArgumentException("商品不存在");
@@ -91,7 +94,8 @@ public class OrderManagementSystem {
      * @throws SQLException 如果在执行数据库操作时发生错误
      */
     public static void deleteProduct(Connection connection, int productId) throws SQLException {
-        connection.setAutoCommit(false); // 关闭自动提交
+        // 关闭自动提交
+        connection.setAutoCommit(false);
 
         try {
             // 检查商品是否存在
@@ -125,7 +129,8 @@ public class OrderManagementSystem {
      * @throws IllegalArgumentException 订单不存在
      */
     public static void deleteOrder(Connection connection, int orderId) throws SQLException {
-        connection.setAutoCommit(false); // 关闭自动提交
+        // 关闭自动提交
+        connection.setAutoCommit(false);
         try {
             // 检查订单是否存在
             if (!isOrderExists(connection, orderId)) {
@@ -157,9 +162,10 @@ public class OrderManagementSystem {
      * @throws SQLException 如果在执行数据库操作时发生错误
      */
     public static boolean isOrderExists(Connection connection, int orderId) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM order_project WHERE id_order = ?";
         // 关闭自动提交
         connection.setAutoCommit(false);
+
+        String sql = "SELECT COUNT(*) FROM order_project WHERE id_order = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             // 设置查询参数
             statement.setInt(1, orderId);
@@ -194,8 +200,9 @@ public class OrderManagementSystem {
      * @throws SQLException 如果在执行数据库操作时发生错误
      */
     public static boolean isProductExists(Connection connection, int ukIdGoods) throws SQLException {
+        // 关闭自动提交
+        connection.setAutoCommit(false);
         String sql = "SELECT COUNT(*) FROM good_table WHERE uk_id_goods = ?";
-        connection.setAutoCommit(false); // 关闭自动提交
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             // 设置查询参数
@@ -231,9 +238,9 @@ public class OrderManagementSystem {
      * @throws SQLException 如果查询过程中发生数据库异常
      */
     public static Order getOrder(Connection connection, int orderId) throws SQLException {
-        String sql = "SELECT id_order, id_good, prices_order, nums_good, time_order, gmt_create, gmt_modified FROM order_project WHERE id_order = ?";
         // 关闭自动提交
         connection.setAutoCommit(false);
+        String sql = "SELECT id_order, id_good, prices_order, nums_good, time_order, gmt_create, gmt_modified FROM order_project WHERE id_order = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, orderId);
@@ -273,9 +280,9 @@ public class OrderManagementSystem {
      * @throws SQLException 如果查询过程中发生数据库异常
      */
     public static Product getProduct(Connection connection, int goodsId) throws SQLException {
-        String sql = "SELECT uk_id_goods, name_goods, price_goods, gmt_modified, gmt_create FROM goods WHERE uk_id_goods = ?";
         // 关闭自动提交
         connection.setAutoCommit(false);
+        String sql = "SELECT uk_id_goods, name_goods, price_goods, gmt_modified, gmt_create FROM goods WHERE uk_id_goods = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, goodsId);
@@ -313,9 +320,9 @@ public class OrderManagementSystem {
      * @throws SQLException 如果修改过程中发生数据库异常
      */
     public static void updateProduct(Connection connection, int goodsId, String newName, double newPrice) throws SQLException {
-        String sql = "UPDATE goods SET name_goods = ?, price_goods = ? WHERE uk_id_goods = ?";
         // 关闭自动提交
         connection.setAutoCommit(false);
+        String sql = "UPDATE goods SET name_goods = ?, price_goods = ? WHERE uk_id_goods = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, newName);
@@ -351,9 +358,9 @@ public class OrderManagementSystem {
      * @throws SQLException 如果修改过程中发生数据库异常
      */
     public static void updateOrder(Connection connection, int orderId, double newPrices, int newNums) throws SQLException {
-        String sql = "UPDATE order_project SET prices_order = ?, nums_good = ? WHERE id_order = ?";
         // 关闭自动提交
         connection.setAutoCommit(false);
+        String sql = "UPDATE order_project SET prices_order = ?, nums_good = ? WHERE id_order = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setDouble(1, newPrices);
