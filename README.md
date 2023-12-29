@@ -7,9 +7,10 @@ src
 │               ├── db                     // 存放与数据库相关的类或工具
 │               │   └── JDBCUtils.java     // JDBC操作工具类
 │               ├── model                  // 存放实体类
-│               │   ├── Order.java         // 订单实体类
-│               │   └── Product.java       // 商品实体类
-│               └── Main.java              // 主程序入口
+│               │    ├── Order.java         // 订单实体类
+│               │    ├── OrderManager.java   // 订单管理类
+│               │    └── Product.java       // 商品实体类
+│               ├── OrderManagementSystem.java   // OrderManagementSystem模块
 │ 
 └── test
     ├── java

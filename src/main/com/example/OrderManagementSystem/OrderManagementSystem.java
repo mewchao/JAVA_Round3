@@ -1,3 +1,5 @@
+package src.main.com.example.OrderManagementSystem;
+
 import src.main.com.example.model.Order;
 import src.main.com.example.model.Product;
 import src.main.com.example.db.JDBCUtils;

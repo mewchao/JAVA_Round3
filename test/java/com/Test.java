@@ -1,6 +1,9 @@
+package test.java.com;
+
+import src.main.com.example.OrderManagementSystem.OrderManagementSystem;
+import src.main.com.example.db.JDBCUtils;
 import src.main.com.example.model.Order;
 import src.main.com.example.model.Product;
-import src.main.com.example.db.JDBCUtils;
 
 import java.sql.Connection;
 import java.sql.SQLException;
